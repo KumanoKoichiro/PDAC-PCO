@@ -1,7 +1,6 @@
 library(dplyr)
 library(Seurat)
-library(patchwork)
-                                                                                              
+library(patchwork)                                                                                              
 
 === DATA INTEGRATION ===           
   
@@ -126,7 +125,7 @@ DF.TX12_BCcounts = t(DF.TX12_counts[c(Vec.Basal, Vec.Classical),])
 DF.PCO12_BCcounts = t(DF.PCO12_counts[c(Vec.Basal, Vec.Classical),])
 DF.TX12PCO12_BCcounts = t(DF.TX12PCO12_counts[c(Vec.Basal, Vec.Classical),])
 
-#Calculating BasalRatio and create a data frame of cell_id and BasalikeRatio                                   
+#Calculating BasalRatio for 5-group clustering                                 
 Vec.BasallikeSum_TX12 = unname(rowSums(DF.12_BCcounts[, 1:25]))
 Vec.TotalSum_TX12 = unname(rowSums(DF.TX12_BCcounts[, 1:50]))
 Vec.BasallikeRatio_TX12 = Vec.BasallikeSum_TX12/Vec.TotalSum_TX12
@@ -138,6 +137,25 @@ Vec.BasallikeRatio_PCO12 = Vec.BasallikeSum_PCO12/Vec.TotalSum_PCO12
 Vec.BasallikeSum_TX12PCO12 = unname(rowSums(DF.TX12PCO12_BCcounts[, 1:25]))
 Vec.TotalSum_TX12PCO12 = unname(rowSums(DF.TX12PCO12_BCcounts[, 1:50]))
 Vec.BasallikeRatio_TX12PCO12 = Vec.BasallikeSum_TX12PCO12/Vec.TotalSum_TX12PCO12
+
+#Transition 5-group label
+5Group_TX12 = Vec.BasallikeRatio_TX12 %>% as.data.frame()%>%
+  mutate(Cluster = case_when(Cluster<0.2~"PureClassical",
+                             Cluster>=0.2&Cluster<0.4~"Classical",
+                             Cluster>=0.4&Cluster<0.6~"Intermediate",
+                             Cluster>=0.6&Cluster<0.8~"Basal-like", TRUE~"PureBasal-like"))
+
+5Group_PCO12 = Vec.BasallikeRatio_PCO12 %>% as.data.frame()%>%
+  mutate(Cluster = case_when(Cluster<0.2~"PureClassical",
+                             Cluster>=0.2&Cluster<0.4~"Classical",
+                             Cluster>=0.4&Cluster<0.6~"Intermediate",
+                             Cluster>=0.6&Cluster<0.8~"Basal-like", TRUE~"PureBasal-like"))
+
+5Group_TX12PCO12 = Vec.BasallikeRatio_TX12PCO12 %>% as.data.frame()%>%
+  mutate(Cluster = case_when(Cluster<0.2~"PureClassical",
+                             Cluster>=0.2&Cluster<0.4~"Classical",
+                             Cluster>=0.4&Cluster<0.6~"Intermediate",
+                             Cluster>=0.6&Cluster<0.8~"Basal-like", TRUE~"PureBasal-like"))
 
 #Zscore of Basal and Classical
 DF.TX12_BCdata = t(DF.TX12_data[c(Vec.Basal, Vec.Classical),])
