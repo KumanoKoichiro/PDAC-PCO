@@ -1,0 +1,233 @@
+library(dplyr)
+library(Seurat)
+library(patchwork)
+                                                                                              
+
+=== DATA INTEGRATION ===           
+  
+anchors_TX12_20 <- FindIntegrationAnchors(object.list = list(TX01,
+                                                             TX02,
+                                                             TX03,
+                                                             TX04,
+                                                             TX05,
+                                                             TX06,
+                                                             TX07,
+                                                             TX08,
+                                                             TX09,
+                                                             TX10,
+                                                             TX11,
+                                                             TX12),
+                                          dims = 1:20)
+
+Combined_TX12_20 <- IntegrateData(anchorset = anchors_TX12_20, dims = 1:20)
+
+anchors_PCO12_20 <- FindIntegrationAnchors(object.list = list(NormPCO01, HypoPCO01,
+                                                              NormPCO07, HypoPCO07,
+                                                              NormPCO11, HypoPCO11,
+                                                              NormPCO14, HypoPCO14,
+                                                              NormPCO16, HypoPCO16,
+                                                              NormPCO17, HypoPCO17,
+                                                              NormPCO18, HypoPCO18,
+                                                              NormPCO20, HypoPCO21,
+                                                              NormPCO22, HypoPCO22,
+                                                              NormPCO23, HypoPCO23,
+                                                              NormPCO24, HypoPCO24),
+                                           dims = 1:20)
+
+Combined_PCO12_20 <- IntegrateData(anchorset = anchors_PCO12_20, dims = 1:20)
+
+anchors_TX12PCO12_20 <- FindIntegrationAnchors(object.list = list(Combined_TX12_20,
+                                                                  Combined_PCO12_20),
+                                               dims = 1:20)
+
+Combined_TX12PCO12_20 <- IntegrateData(anchorset = anchors_TX12PCO12_20, dims = 1:20)
+
+
+=== SCALING AND PCA ===
+
+allgenes_Combined_TX12_20 <- rownames(Combined_TX12_20)	
+Combined_TX12_20_scaled <- ScaleData(Combined_TX12_20, features = allgenes_Combined_TX12_20)
+Combined_TX12_20_PCA <- RunPCA(Combined_TX12_20_scaled, npcs = 50, verbose = FALSE, features=allgenes_Combined_TX12_20)
+
+allgenes_Combined_PCO12_20 <- rownames(Combined_PCO12_20)	
+Combined_PCO12_20_scaled <- ScaleData(Combined_PCO12_20, features = allgenes_Combined_PCO12_20)
+Combined_PCO12_20_PCA <- RunPCA(Combined_PCO12_20_scaled, npcs = 50, verbose = FALSE, features=allgenes_Combined_PCO12_20)
+
+allgenes_Combined_TX12PCO12_20 <- rownames(Combined_TX12PCO12_20)	
+Combined_TX12PCO12_20_scaled <- ScaleData(Combined_TX12PCO12_20, features = allgenes_Combined_TX12PCO12_20)
+Combined_TX12PCO12_20_PCA <- RunPCA(Combined_TX12PCO12_20_scaled, npcs = 50, verbose = FALSE, features=allgenes_Combined_TX12PCO12_20)
+
+
+=== CLUSTERING ===
+  
+Combined_TX12_20_PCA_UMAP17 <- RunUMAP(Combined_TX12_20_PCA, reduction = "pca", dims = 1:17)
+Combined_TX12_20_PCA_UMAP17 <- FindNeighbors(Combined_TX12_20_PCA_UMAP17, reduction = "pca", dims = 1:17)
+Combined_TX12_20_PCA_UMAP17_0.5 <- FindClusters(Combined_TX12_20_PCA_UMAP17, resolution = 0.5)
+
+Combined_PCO12_20_PCA_UMAP17 <- RunUMAP(Combined_TX12_20_PCA, reduction = "pca", dims = 1:17)
+Combined_PCO12_20_PCA_UMAP17 <- FindNeighbors(Combined_PCO12_20_PCA_UMAP17, reduction = "pca", dims = 1:17)
+Combined_PCO12_20_PCA_UMAP17_0.5 <- FindClusters(Combined_PCO12_20_PCA_UMAP17, resolution = 0.5)
+
+Combined_TX12PCO12_20_PCA_UMAP17 <- RunUMAP(Combined_TX12PCO12_20_PCA, reduction = "pca", dims = 1:17)
+Combined_TX12PCO12_20_PCA_UMAP17 <- FindNeighbors(Combined_TX12PCO12_20_PCA_UMAP17, reduction = "pca", dims = 1:17)
+Combined_TX12PCO12_20_PCA_UMAP17_0.5 <- FindClusters(Combined_TX12PCO12_20_PCA_UMAP17, resolution = 0.5)
+
+
+=== Cell TYPE ANNOTATION ===
+
+#Define the celltype marker genes
+Vec.Epi = c("EPCAM", "CDH1","KRT19","MUC1","CEACAM5")
+Vec.Acinar = c("AMY2A","CPA1")
+Vec.Islet = c("INS","PPY")
+Vec.Fibro = c("COL1A1","COL1A2","ACTA2","VIM")
+Vec.Vasc = c("PECAM1","CD34")
+Vec.Nerve = c("SOX2", "CCN3")
+Vec.Tcell = c("CD3D","CD4","CD8A","GZMA","GZMB")
+Vec.Bcell = c("CD19")
+Vec.Neut = c("FCGR3A") 
+Vec.Myeloid = c("ITGAM")
+Vec.Macrophage = c("CD68")
+
+Vec.MarkerGenes_Celltype = c(Vec.Epi,Vec.Acinar,Vec.Islet,Vec.Fibro,Vec.Vasc,Vec.Nerve,Vec.Tcell,Vec.Bcell,Vec.Neut,Vec.Myeloid,Vec.Macrophage)
+
+#Drawing Dotplot
+DotPlot(Combined_TX12_20_PCA_UMAP17_0.5,
+        features = Vec.MarkerGenes_Celltype, dot.scale = 10, col.min = 0)+ 
+  RotatedAxis()
+
+
+=== 5-GROUP SUBTYPING, SUBTYPE SCORE ===
+
+Combined_TX12_20_PCA_UMAP17_0.5_Epithelium <- subset(Combined_TX12_20_PCA_UMAP17_0.5, subset = seurat_clusters %in% c("1", "2"))
+Combined_PCO12_20_PCA_UMAP17_0.5_Epithelium <- subset(Combined_PCO12_20_PCA_UMAP17_0.5, subset = seurat_clusters %in% c("1", "2"))
+Combined_TX12PCO12_20_PCA_UMAP17_0.5_Epithelium <- subset(Combined_TX12PCO12_20_PCA_UMAP17_0.5, subset = seurat_clusters %in% c("1", "2"))
+
+DF.TX12_scaleData = as.matrix(Combined_TX12_20_PCA_UMAP17_0.5_Epithelium@assays[["integrated"]]$scale.data)
+DF.TX12_counts = as.matrix(Combined_TX12_20_PCA_UMAP17_0.5_Epithelium@assays[["RNA"]]$counts)
+DF.TX12_data = as.matrix(Combined_TX12_20_PCA_UMAP17_0.5_Epithelium@assays[["integrated"]]$data)
+DF.TX12_Sample = as.matrix(Combined_TX12_20_PCA_UMAP17_0.5_Epithelium@meta.data[["Sample"]])
+
+DF.PCO12_scaleData = as.matrix(Combined_PCO12_20_PCA_UMAP17_0.5_Epithelium@assays[["integrated"]]$scale.data)
+DF.PCO12_counts = as.matrix(Combined_PCO12_20_PCA_UMAP17_0.5_Epithelium@assays[["RNA"]]$counts)
+DF.PCO12_data = as.matrix(Combined_PCO12_20_PCA_UMAP17_0.5_Epithelium@assays[["integrated"]]$data)
+DF.PCO12_Sample = as.matrix(Combined_PCO12_20_PCA_UMAP17_0.5_Epithelium@meta.data[["Sample"]])
+
+DF.TX12PCO12_scaleData = as.matrix(Combined_TX12PCO12_20_PCA_UMAP17_0.5_Epithelium@assays[["integrated"]]$scale.data)
+DF.TX12PCO12_counts = as.matrix(Combined_TX12PCO12_20_PCA_UMAP17_0.5_Epithelium@assays[["RNA"]]$counts)
+DF.TX12PCO12_data = as.matrix(Combined_TX12PCO12_20_PCA_UMAP17_0.5_Epithelium@assays[["integrated"]]$data)
+DF.TX12PCO12_Sample = as.matrix(Combined_TX12PCO12_20_PCA_UMAP17_0.5_Epithelium@meta.data[["Sample"]])
+
+#Basal-like / Classical type gene set
+Vec.Basal = Moffitt[,"Basal"]
+Vec.Classical = Moffitt[,"Classical"]
+
+#Extracting Moffitt's gene set
+DF.TX12_BCcounts = t(DF.TX12_counts[c(Vec.Basal, Vec.Classical),])
+DF.PCO12_BCcounts = t(DF.PCO12_counts[c(Vec.Basal, Vec.Classical),])
+DF.TX12PCO12_BCcounts = t(DF.TX12PCO12_counts[c(Vec.Basal, Vec.Classical),])
+
+#Calculating BasalRatio and create a data frame of cell_id and BasalikeRatio                                   
+Vec.BasallikeSum_TX12 = unname(rowSums(DF.12_BCcounts[, 1:25]))
+Vec.TotalSum_TX12 = unname(rowSums(DF.TX12_BCcounts[, 1:50]))
+Vec.BasallikeRatio_TX12 = Vec.BasallikeSum_TX12/Vec.TotalSum_TX12
+
+Vec.BasallikeSum_PCO12 = unname(rowSums(DF.PCO12_BCcounts[, 1:25]))
+Vec.TotalSum_PCO12 = unname(rowSums(DF.PCO12_BCcounts[, 1:50]))
+Vec.BasallikeRatio_PCO12 = Vec.BasallikeSum_PCO12/Vec.TotalSum_PCO12
+
+Vec.BasallikeSum_TX12PCO12 = unname(rowSums(DF.TX12PCO12_BCcounts[, 1:25]))
+Vec.TotalSum_TX12PCO12 = unname(rowSums(DF.TX12PCO12_BCcounts[, 1:50]))
+Vec.BasallikeRatio_TX12PCO12 = Vec.BasallikeSum_TX12PCO12/Vec.TotalSum_TX12PCO12
+
+#Zscore of Basal and Classical
+DF.TX12_BCdata = t(DF.TX12_data[c(Vec.Basal, Vec.Classical),])
+DF.TX12_BCdata_Zscore = scale(DF.TX12_BCdata)
+
+DF.PCO12_BCdata = t(DF.PCO12_data[c(Vec.Basal, Vec.Classical),])
+DF.PCO12_BCdata_Zscore = scale(DF.PCO12_BCdata)
+
+DF.TX12PCO12_BCdata = t(DF.TX12PCO12_data[c(Vec.Basal, Vec.Classical),])
+DF.TX12PCO12_BCdata_Zscore = scale(DF.TX12PCO12_BCdata)
+
+#Calculating SubtypeScore
+Vec.BasallikeScore_TX12 = unname(rowSums(DF.TX12_BCdata_Zscore[, 1:25]))
+Vec.ClassicalScore_TX12 = unname(rowSums(DF.TX12_BCdata_Zscore[, 26:50]))
+Vec.SubtypeScore_TX12 = Vec.BasallikeScore_TX12 - Vec.ClassicalScore_TX12
+
+Vec.BasallikeScore_PCO12 = unname(rowSums(DF.PCO12_BCdata_Zscore[, 1:25]))
+Vec.ClassicalScore_PCO12 = unname(rowSums(DF.PCO12_BCdata_Zscore[, 26:50]))
+Vec.SubtypeScore_PCO12 = Vec.BasallikeScore_PCO12 - Vec.ClassicalScore_PCO12
+
+Vec.BasallikeScore_TX12PCO12 = unname(rowSums(DF.TX12PCO12_BCdata_Zscore[, 1:25]))
+Vec.ClassicalScore_TX12PCO12 = unname(rowSums(DF.TX12PCO12_BCdata_Zscore[, 26:50]))
+Vec.SubtypeScore_TX12PCO12 = Vec.BasallikeScore_TX12PCO12 - Vec.ClassicalScore_TX12PCO12
+
+
+=== HYPOXIA SCORE ===
+  
+Vec.hypoxia = list(CA9,VEGFA,SLC2A1,LDHA,LOX,ANLN,ENO1,PGAM1,CCN2,BCL2,DDIT3,IL6,PDK1)
+
+#Hypoxia geneのみ抽出
+DF.TX12_hypoxia_Zscore = scale(t(DF.TX12_data[Vec.hypoxia,]))
+
+#Calculating HypoxiaScore
+Vec.HypoxiaScore_TX01to12 = unname(rowSums(DF.TX01to12_hypoxia_Zscore[,1:13]))
+
+
+=== DEG ANLYSIS using BULK RNA SEQUENCING DATA ===
+library(edgeR)
+library(limma)
+
+# 行う2群間比較ごとにdata.frameとして抽出
+PCO12_HvsN = data_all[c(1,5,9,13,17,21,25,29,33,37,41,
+                        3,7,11,15,19,23,27,31,35,39,43)]   # 1.comparison in establishing O2
+PCO12_HvsNH = data_all[c(1,5,9,13,17,21,25,29,33,37,41,
+                         4,8,12,16,20,24,28,32,36,40,44)]    # 2.comparison in 1% O2: H vs NH
+PCO12_HNvsN = data_all[c(2,6,10,14,18,22,26,30,34,38,42,
+                         3,7,11,15,19,23,27,31,35,39,43)]  # 3.comparison in 20% O2: HN vs N
+
+# Group labeling : Hypo-isolated = Group"A", Normo-isolated = Group"B"
+group = factor(c("A","A","A","A","A","A","A","A","A","A","A","A",
+                 "B","B","B","B","B","B","B","B","B","B","B","B"))
+
+# Creating DGE List
+DGEListObj.1 = DGEList(counts=BvsC_3pairs_HvsN, group=group)
+DGEListObj.2 = DGEList(counts=BvsC_3pairs_HvsNH, group=group)
+DGEListObj.3 = DGEList(counts=BvsC_3pairs_HNvsN, group=group)
+
+# Filtering for genes with low expression
+keep1 = filterByExpr(DGEListObj.1)
+keep2 = filterByExpr(DGEListObj.2)
+keep3 = filterByExpr(DGEListObj.3)
+
+DGEListObj.1 = DGEListObj.1[keep1, , keep.lib.sizes=FALSE]
+DGEListObj.2 = DGEListObj.2[keep2, , keep.lib.sizes=FALSE]
+DGEListObj.3 = DGEListObj.3[keep3, , keep.lib.sizes=FALSE]
+
+# calcNormFactors
+DGEListObj.1 = calcNormFactors(DGEListObj.1)
+DGEListObj.2 = calcNormFactors(DGEListObj.2)
+DGEListObj.3 = calcNormFactors(DGEListObj.3)
+
+# quasi-likelihood F-tests (QLF):
+# Making label “A”, “B” into dummy variables, and make Sample/Group correspondence table into Data.frame.
+design = model.matrix(~group)  
+DGEListObj.1 = estimateDisp( DGEListObj.1, design )
+DGEListObj.2 = estimateDisp( DGEListObj.2, design )
+DGEListObj.3 = estimateDisp( DGEListObj.3, design )
+
+fit1 = glmQLFit( DGEListObj.1, design )
+fit2 = glmQLFit( DGEListObj.2, design )
+fit3 = glmQLFit( DGEListObj.3, design )
+
+qlf1 = glmQLFTest(fit1, coef=2)
+qlf2 = glmQLFTest(fit2, coef=2)
+qlf3 = glmQLFTest(fit3, coef=2)
+
+# Making data frame
+table1=as.data.frame(topTags(qlf1, n = nrow(DGEListObj.1))) 
+table2=as.data.frame(topTags(qlf2, n = nrow(DGEListObj.2)))
+table3=as.data.frame(topTags(qlf3, n = nrow(DGEListObj.3)))
+
+
+                                                                                               
