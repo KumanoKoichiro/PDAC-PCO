@@ -97,6 +97,8 @@ DotPlot(Combined_TX12_20_PCA_UMAP17_0.5,
 
 === 5-GROUP SUBTYPING, SUBTYPE SCORE ===
 
+library(magrittr)
+
 Combined_TX12_20_PCA_UMAP17_0.5_Epithelium <- subset(Combined_TX12_20_PCA_UMAP17_0.5, subset = seurat_clusters %in% c("1", "2"))
 Combined_PCO12_20_PCA_UMAP17_0.5_Epithelium <- subset(Combined_PCO12_20_PCA_UMAP17_0.5, subset = seurat_clusters %in% c("1", "2"))
 Combined_TX12PCO12_20_PCA_UMAP17_0.5_Epithelium <- subset(Combined_TX12PCO12_20_PCA_UMAP17_0.5, subset = seurat_clusters %in% c("1", "2"))
