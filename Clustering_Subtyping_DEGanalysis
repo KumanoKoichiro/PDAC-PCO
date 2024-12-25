@@ -63,9 +63,9 @@ Combined_TX12_20_PCA_UMAP17 <- RunUMAP(Combined_TX12_20_PCA, reduction = "pca", 
 Combined_TX12_20_PCA_UMAP17 <- FindNeighbors(Combined_TX12_20_PCA_UMAP17, reduction = "pca", dims = 1:17)
 Combined_TX12_20_PCA_UMAP17_0.5 <- FindClusters(Combined_TX12_20_PCA_UMAP17, resolution = 0.5)
 
-Combined_PCO12_20_PCA_UMAP17 <- RunUMAP(Combined_TX12_20_PCA, reduction = "pca", dims = 1:17)
-Combined_PCO12_20_PCA_UMAP17 <- FindNeighbors(Combined_PCO12_20_PCA_UMAP17, reduction = "pca", dims = 1:15)
-Combined_PCO12_20_PCA_UMAP17_0.5 <- FindClusters(Combined_PCO12_20_PCA_UMAP17, resolution = 0.4)
+Combined_PCO12_20_PCA_UMAP15 <- RunUMAP(Combined_TX12_20_PCA, reduction = "pca", dims = 1:15)
+Combined_PCO12_20_PCA_UMAP15 <- FindNeighbors(Combined_PCO12_20_PCA_UMAP17, reduction = "pca", dims = 1:15)
+Combined_PCO12_20_PCA_UMAP15_0.4 <- FindClusters(Combined_PCO12_20_PCA_UMAP17, resolution = 0.4)
 
 Combined_TX12PCO12_20_PCA_UMAP17 <- RunUMAP(Combined_TX12PCO12_20_PCA, reduction = "pca", dims = 1:17)
 Combined_TX12PCO12_20_PCA_UMAP17 <- FindNeighbors(Combined_TX12PCO12_20_PCA_UMAP17, reduction = "pca", dims = 1:17)
