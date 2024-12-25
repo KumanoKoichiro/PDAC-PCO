@@ -187,10 +187,10 @@ Vec.SubtypeScore_TX12PCO12 = Vec.BasallikeScore_TX12PCO12 - Vec.ClassicalScore_T
   
 Vec.hypoxia = list(CA9,VEGFA,SLC2A1,LDHA,LOX,ANLN,ENO1,PGAM1,CCN2,BCL2,DDIT3,IL6,PDK1)
 
-#Hypoxia geneのみ抽出
+#Extraction of hypoxia related genes
 DF.TX12_hypoxia_Zscore = scale(t(DF.TX12_data[Vec.hypoxia,]))
 
-#Calculating HypoxiaScore
+#Hypoxia scoring
 Vec.HypoxiaScore_TX01to12 = unname(rowSums(DF.TX01to12_hypoxia_Zscore[,1:13]))
 
 
