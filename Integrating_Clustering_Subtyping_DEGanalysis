@@ -35,12 +35,6 @@ anchors_PCO12_20 <- FindIntegrationAnchors(object.list = list(NormPCO01, HypoPCO
 
 Combined_PCO12_20 <- IntegrateData(anchorset = anchors_PCO12_20, dims = 1:20)
 
-anchors_TX12PCO12_20 <- FindIntegrationAnchors(object.list = list(Combined_TX12_20,
-                                                                  Combined_PCO12_20),
-                                               dims = 1:20)
-
-Combined_TX12PCO12_20 <- IntegrateData(anchorset = anchors_TX12PCO12_20, dims = 1:20)
-
 
 === SCALING AND PCA ===
 
@@ -52,10 +46,6 @@ allgenes_Combined_PCO12_20 <- rownames(Combined_PCO12_20)
 Combined_PCO12_20_scaled <- ScaleData(Combined_PCO12_20, features = allgenes_Combined_PCO12_20)
 Combined_PCO12_20_PCA <- RunPCA(Combined_PCO12_20_scaled, npcs = 50, verbose = FALSE, features=allgenes_Combined_PCO12_20)
 
-allgenes_Combined_TX12PCO12_20 <- rownames(Combined_TX12PCO12_20)	
-Combined_TX12PCO12_20_scaled <- ScaleData(Combined_TX12PCO12_20, features = allgenes_Combined_TX12PCO12_20)
-Combined_TX12PCO12_20_PCA <- RunPCA(Combined_TX12PCO12_20_scaled, npcs = 50, verbose = FALSE, features=allgenes_Combined_TX12PCO12_20)
-
 
 === CLUSTERING ===
   
@@ -66,10 +56,6 @@ Combined_TX12_20_PCA_UMAP17_0.5 <- FindClusters(Combined_TX12_20_PCA_UMAP17, res
 Combined_PCO12_20_PCA_UMAP15 <- RunUMAP(Combined_TX12_20_PCA, reduction = "pca", dims = 1:15)
 Combined_PCO12_20_PCA_UMAP15 <- FindNeighbors(Combined_PCO12_20_PCA_UMAP17, reduction = "pca", dims = 1:15)
 Combined_PCO12_20_PCA_UMAP15_0.4 <- FindClusters(Combined_PCO12_20_PCA_UMAP17, resolution = 0.4)
-
-Combined_TX12PCO12_20_PCA_UMAP17 <- RunUMAP(Combined_TX12PCO12_20_PCA, reduction = "pca", dims = 1:17)
-Combined_TX12PCO12_20_PCA_UMAP17 <- FindNeighbors(Combined_TX12PCO12_20_PCA_UMAP17, reduction = "pca", dims = 1:17)
-Combined_TX12PCO12_20_PCA_UMAP17_0.5 <- FindClusters(Combined_TX12PCO12_20_PCA_UMAP17, resolution = 0.5)
 
 
 === Cell TYPE ANNOTATION ===
@@ -92,21 +78,43 @@ Vec.MarkerGenes_Celltype = c(Vec.Epi,Vec.Acinar,Vec.Islet,Vec.Fibro,Vec.Vasc,Vec
 #Drawing Dotplot
 DotPlot(Combined_TX12_20_PCA_UMAP17_0.5,
         features = Vec.MarkerGenes_Celltype, dot.scale = 10, col.min = 0)+ 
-  RotatedAxis()
+  RotatedAxis()  #seurat_clusters "1" and "2" are Epithelial clusters
+
+
+=== Extracting epithelial cells from Primary PDAC tissue samples===
+
+Combined_TX12_20_Epi <-  subset(Combined_TX12_20_PCA_UMAP17_0.5, subset == seurat_clusters %in% c(“1”, “2”))
+
+
+=== PDAC AND PCO DATA INTEGRATION ===
+
+anchors_TX12PCO12_20 <- FindIntegrationAnchors(object.list = list(Combined_TX12_20_Epi,
+                                                                  Combined_PCO12_20),
+                                               dims = 1:20)
+
+Combined_TX12PCO12_20 <- IntegrateData(anchorset = anchors_TX12PCO12_20, dims = 1:20)
+
+=== SCALING AND PCA ===
+
+allgenes_Combined_TX12PCO12_20 <- rownames(Combined_TX12PCO12_20)	
+Combined_TX12PCO12_20_scaled <- ScaleData(Combined_TX12PCO12_20, features = allgenes_Combined_TX12PCO12_20)
+Combined_TX12PCO12_20_PCA <- RunPCA(Combined_TX12PCO12_20_scaled, npcs = 50, verbose = FALSE, features=allgenes_Combined_TX12PCO12_20)
+
+=== CLUSTERING ===
+
+Combined_TX12PCO12_20_PCA_UMAP15 <- RunUMAP(Combined_TX12PCO12_20_PCA, reduction = "pca", dims = 1:15)
+Combined_TX12PCO12_20_PCA_UMAP15 <- FindNeighbors(Combined_TX12PCO12_20_PCA_UMAP17, reduction = "pca", dims = 1:15)
+Combined_TX12PCO12_20_PCA_UMAP15_0.3 <- FindClusters(Combined_TX12PCO12_20_PCA_UMAP17, resolution = 0.3)
 
 
 === 5-GROUP SUBTYPING, SUBTYPE SCORE ===
 
 library(magrittr)
 
-Combined_TX12_20_PCA_UMAP17_0.5_Epithelium <- subset(Combined_TX12_20_PCA_UMAP17_0.5, subset = seurat_clusters %in% c("1", "2"))
-Combined_PCO12_20_PCA_UMAP17_0.5_Epithelium <- subset(Combined_PCO12_20_PCA_UMAP17_0.5, subset = seurat_clusters %in% c("1", "2"))
-Combined_TX12PCO12_20_PCA_UMAP17_0.5_Epithelium <- subset(Combined_TX12PCO12_20_PCA_UMAP17_0.5, subset = seurat_clusters %in% c("1", "2"))
-
-DF.TX12_scaleData = as.matrix(Combined_TX12_20_PCA_UMAP17_0.5_Epithelium@assays[["integrated"]]$scale.data)
-DF.TX12_counts = as.matrix(Combined_TX12_20_PCA_UMAP17_0.5_Epithelium@assays[["RNA"]]$counts)
-DF.TX12_data = as.matrix(Combined_TX12_20_PCA_UMAP17_0.5_Epithelium@assays[["integrated"]]$data)
-DF.TX12_Sample = as.matrix(Combined_TX12_20_PCA_UMAP17_0.5_Epithelium@meta.data[["Sample"]])
+DF.TX12_scaleData = as.matrix(Combined_TX12_20_Epi@assays[["integrated"]]$scale.data)
+DF.TX12_counts = as.matrix(Combined_TX12_20_Epi@assays[["RNA"]]$counts)
+DF.TX12_data = as.matrix(Combined_TX12_20_Epi@assays[["integrated"]]$data)
+DF.TX12_Sample = as.matrix(Combined_TX12_20_Epi@meta.data[["Sample"]])
 
 DF.PCO12_scaleData = as.matrix(Combined_PCO12_20_PCA_UMAP17_0.5_Epithelium@assays[["integrated"]]$scale.data)
 DF.PCO12_counts = as.matrix(Combined_PCO12_20_PCA_UMAP17_0.5_Epithelium@assays[["RNA"]]$counts)
@@ -249,5 +257,3 @@ table1=as.data.frame(topTags(qlf1, n = nrow(DGEListObj.1)))
 table2=as.data.frame(topTags(qlf2, n = nrow(DGEListObj.2)))
 table3=as.data.frame(topTags(qlf3, n = nrow(DGEListObj.3)))
 
-
-                                                                                               
