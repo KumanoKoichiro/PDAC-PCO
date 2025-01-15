@@ -103,8 +103,8 @@ Combined_TX12PCO12_20_PCA <- RunPCA(Combined_TX12PCO12_20_scaled, npcs = 50, ver
 === CLUSTERING ===
 
 Combined_TX12PCO12_20_PCA_UMAP15 <- RunUMAP(Combined_TX12PCO12_20_PCA, reduction = "pca", dims = 1:15)
-Combined_TX12PCO12_20_PCA_UMAP15 <- FindNeighbors(Combined_TX12PCO12_20_PCA_UMAP17, reduction = "pca", dims = 1:15)
-Combined_TX12PCO12_20_PCA_UMAP15_0.3 <- FindClusters(Combined_TX12PCO12_20_PCA_UMAP17, resolution = 0.3)
+Combined_TX12PCO12_20_PCA_UMAP15 <- FindNeighbors(Combined_TX12PCO12_20_PCA_UMAP15, reduction = "pca", dims = 1:15)
+Combined_TX12PCO12_20_PCA_UMAP15_0.3 <- FindClusters(Combined_TX12PCO12_20_PCA_UMAP15, resolution = 0.3)
 
 
 === 5-GROUP SUBTYPING, SUBTYPE SCORE ===
