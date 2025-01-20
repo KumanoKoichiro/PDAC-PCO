@@ -78,27 +78,29 @@ Vec.MarkerGenes_Celltype = c(Vec.Epi,Vec.Acinar,Vec.Islet,Vec.Fibro,Vec.Vasc,Vec
 #Drawing Dotplot
 DotPlot(Combined_TX12_20_PCA_UMAP17_0.5,
         features = Vec.MarkerGenes_Celltype, dot.scale = 10, col.min = 0)+ 
-  RotatedAxis()  #seurat_clusters "1" and "2" are Epithelial clusters
+  RotatedAxis()  #seurat_clusters "1" and "2" are cancer cell clusters
 
 
-=== Extracting epithelial cells from Primary PDAC tissue samples===
+=== Extracting cancer cells from Primary PDAC tissue samples===
 
-Combined_TX12_20_Epi <-  subset(Combined_TX12_20_PCA_UMAP17_0.5, subset == seurat_clusters %in% c(“1”, “2”))
+Combined_TX12_20_cancer <-  subset(Combined_TX12_20_PCA_UMAP17_0.5, subset == seurat_clusters %in% c(“1”, “2”))
 
 
 === PDAC AND PCO DATA INTEGRATION ===
 
-anchors_TX12PCO12_20 <- FindIntegrationAnchors(object.list = list(Combined_TX12_20_Epi,
+anchors_TX12PCO12_20 <- FindIntegrationAnchors(object.list = list(Combined_TX12_20_cancer,
                                                                   Combined_PCO12_20),
                                                dims = 1:20)
 
 Combined_TX12PCO12_20 <- IntegrateData(anchorset = anchors_TX12PCO12_20, dims = 1:20)
+
 
 === SCALING AND PCA ===
 
 allgenes_Combined_TX12PCO12_20 <- rownames(Combined_TX12PCO12_20)	
 Combined_TX12PCO12_20_scaled <- ScaleData(Combined_TX12PCO12_20, features = allgenes_Combined_TX12PCO12_20)
 Combined_TX12PCO12_20_PCA <- RunPCA(Combined_TX12PCO12_20_scaled, npcs = 50, verbose = FALSE, features=allgenes_Combined_TX12PCO12_20)
+
 
 === CLUSTERING ===
 
