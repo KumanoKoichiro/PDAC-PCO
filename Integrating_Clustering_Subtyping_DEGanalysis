@@ -4,18 +4,18 @@ library(patchwork)
 
 === DATA INTEGRATION ===           
   
-anchors_TX12_20 <- FindIntegrationAnchors(object.list = list(TX01,
-                                                             TX02,
-                                                             TX03,
-                                                             TX04,
-                                                             TX05,
-                                                             TX06,
-                                                             TX07,
-                                                             TX08,
-                                                             TX09,
-                                                             TX10,
-                                                             TX11,
-                                                             TX12),
+anchors_TX12_20 <- FindIntegrationAnchors(object.list = list(P01,
+                                                             P07,
+                                                             P11,
+                                                             P14,
+                                                             P16,
+                                                             P17,
+                                                             P18,
+                                                             P20,
+                                                             P21,
+                                                             P22,
+                                                             P23,
+                                                             P24),
                                           dims = 1:20)
 
 Combined_TX12_20 <- IntegrateData(anchorset = anchors_TX12_20, dims = 1:20)
